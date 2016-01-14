@@ -298,7 +298,7 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
     Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 }
 
-VAO *triangle, *rectangle;
+VAO *triangle, *rectangle, *circle;
 
 // Creates the triangle object used in this sample code
 void createTriangle ()
@@ -331,7 +331,7 @@ void createRectangle ()
     1.2,-1,0, // vertex 2
     1.2, 1,0, // vertex 3
 
-    1.2, 1,0, // vertex 3
+    //1.2, 1,0, // vertex 3
     -1.2, 1,0, // vertex 4
     -1.2,-1,0  // vertex 1
   };
@@ -341,13 +341,47 @@ void createRectangle ()
     0,0,1, // color 2
     0,1,0, // color 3
 
-    0,1,0, // color 3
+    //0,1,0, // color 3
     0.3,0.3,0.3, // color 4
     1,0,0  // color 1
   };
 
   // create3DObject creates and returns a handle to a VAO that can be used later
-  rectangle = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
+  rectangle = create3DObject(GL_LINE_STRIP, 5, vertex_buffer_data, color_buffer_data, GL_FILL);
+}
+
+void createCircle ()
+{
+  int num_segments = 360;
+  float r = 0.7;
+  float theta = 2 * 3.1415926 / float(num_segments); 
+  float c = cosf(theta);//precalculate the sine and cosine
+  float s = sinf(theta);
+  float t;
+  float cx =0,cy=0;
+
+  float x = r;
+  float y = 0; 
+  GLfloat vertex_buffer_data [1080]; 
+  GLfloat color_buffer_data [1080]; 
+  for(int ii = 0; ii < num_segments * 3; ii+=3) 
+  { 
+    float yo = x+cx;
+    float oy = y+cy;
+    vertex_buffer_data[ii] = yo;
+    vertex_buffer_data[ii+1] = oy;
+    vertex_buffer_data[ii+2] = 0;
+    color_buffer_data[ii]=1;
+    color_buffer_data[ii+1]=0;
+    color_buffer_data[ii+2]=0;
+
+    t = x;
+    x = c * x - s * y;
+    y = s * t + c * y;
+  }
+
+  circle = create3DObject(GL_TRIANGLE_FAN,360,vertex_buffer_data,color_buffer_data,GL_FILL) ;
+ 
 }
 
 float camera_rotation_angle = 90;
@@ -416,6 +450,7 @@ void draw ()
   // draw3DObject draws the VAO given to it using current MVP matrix
   draw3DObject(rectangle);
 
+  draw3DObject(circle);
   // Increment angles
   float increments = 1;
 
@@ -480,7 +515,7 @@ void initGL (GLFWwindow* window, int width, int height)
 	// Create the models
 	createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
 	createRectangle ();
-	
+	createCircle ();
 	// Create and compile our GLSL program from the shaders
 	programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );
 	// Get a handle for our "MVP" uniform
@@ -507,7 +542,7 @@ int main (int argc, char** argv)
 	int width = 600;
 	int height = 600;
 
-    GLFWwindow* window = initGLFW(width, height);
+  GLFWwindow* window = initGLFW(width, height);
 
 	initGL (window, width, height);
 
@@ -535,4 +570,4 @@ int main (int argc, char** argv)
 
     glfwTerminate();
     exit(EXIT_SUCCESS);
-}
+} 
