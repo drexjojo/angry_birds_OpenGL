@@ -123,6 +123,7 @@ void quit(GLFWwindow *window)
 }
 
 
+
 /* Generate VAO, VBOs and return VAO handle */
 struct VAO* create3DObject (GLenum primitive_mode, int numVertices, const GLfloat* vertex_buffer_data, const GLfloat* color_buffer_data, GLenum fill_mode=GL_FILL)
 {
@@ -207,6 +208,8 @@ float triangle_rot_dir = 1;
 float rectangle_rot_dir = 1;
 bool triangle_rot_status = true;
 bool rectangle_rot_status = true;
+float triangle_x = 0,triangle_y = 0,triangle_z = 0;
+
 
 /* Executed when a regular key is pressed/released/held-down */
 /* Prefered for Keyboard events */
@@ -214,7 +217,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 {
      // Function is called first on GLFW_PRESS.
 
-    if (action == GLFW_RELEASE) {
+    if (action == GLFW_REPEAT) {
         switch (key) {
             case GLFW_KEY_C:
                 rectangle_rot_status = !rectangle_rot_status;
@@ -222,8 +225,11 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
             case GLFW_KEY_P:
                 triangle_rot_status = !triangle_rot_status;
                 break;
-            case GLFW_KEY_X:
-                // do something ..
+            case GLFW_KEY_D:
+                triangle_x+=0.1;
+                break;
+            case GLFW_KEY_A:
+                triangle_x-=0.1;
                 break;
             default:
                 break;
@@ -298,7 +304,37 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
     Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 }
 
-VAO *triangle, *rectangle, *circle;
+VAO *triangle, *rectangle, *circle ,*ground ,*sky;
+
+
+
+void createGround ()
+{
+  static const GLfloat vertex_buffer_data [] = {
+    -4,-1,0, // vertex 1
+    4,-1,0, // vertex 2
+    4, 1,0, // vertex 3
+
+    4, 1,0, // vertex 3
+    -4, 1,0, // vertex 4
+    -4,-1,0  // vertex 1
+  };
+
+  static const GLfloat color_buffer_data [] = {
+    1,0,0, // color 1
+    1,0,0, // color 2
+    1,0,0, // color 3
+
+    1,0,0, // color 3
+    1,0,0, // color 4
+    1,0,0  // color 1
+  };
+
+  
+  // create3DObject creates and returns a handle to a VAO that can be used later
+  ground = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
+
+}
 
 // Creates the triangle object used in this sample code
 void createTriangle ()
@@ -319,7 +355,7 @@ void createTriangle ()
   };
 
   // create3DObject creates and returns a handle to a VAO that can be used later
-  triangle = create3DObject(GL_TRIANGLES, 3, vertex_buffer_data, color_buffer_data, GL_LINE);
+  triangle = create3DObject(GL_TRIANGLES, 3, vertex_buffer_data, color_buffer_data, GL_FILL);
 }
 
 // Creates the rectangle object used in this sample code
@@ -331,7 +367,7 @@ void createRectangle ()
     1.2,-1,0, // vertex 2
     1.2, 1,0, // vertex 3
 
-    //1.2, 1,0, // vertex 3
+    1.2, 1,0, // vertex 3
     -1.2, 1,0, // vertex 4
     -1.2,-1,0  // vertex 1
   };
@@ -341,13 +377,14 @@ void createRectangle ()
     0,0,1, // color 2
     0,1,0, // color 3
 
-    //0,1,0, // color 3
+    0,1,0, // color 3
     0.3,0.3,0.3, // color 4
     1,0,0  // color 1
   };
 
+  
   // create3DObject creates and returns a handle to a VAO that can be used later
-  rectangle = create3DObject(GL_LINE_STRIP, 5, vertex_buffer_data, color_buffer_data, GL_FILL);
+  rectangle = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
 }
 
 void createCircle ()
@@ -425,8 +462,25 @@ void draw ()
 
   /* Render your scene */
 
-  glm::mat4 translateTriangle = glm::translate (glm::vec3(-2.0f, 0.0f, 0.0f)); // glTranslatef
-  glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/180.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+
+  /* Rendering the ground */
+  glm::mat4 translateground = glm::translate (glm::vec3(0, -3, 0)); // glTranslatef
+  //glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  glm::mat4 groundTransform = translateground;
+  Matrices.model *= groundTransform; 
+  MVP = VP * Matrices.model; // MVP = p * V * M
+
+  //  Don't change unless you are sure!!
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+  draw3DObject(ground); 
+  
+  Matrices.model = glm::mat4(1.0f);
+
+
+  /* Rendering triangle */
+  glm::mat4 translateTriangle = glm::translate (glm::vec3(triangle_x, triangle_y, triangle_z)); // glTranslatef
+  glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
   glm::mat4 triangleTransform = translateTriangle * rotateTriangle;
   Matrices.model *= triangleTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
@@ -441,6 +495,7 @@ void draw ()
   // glPopMatrix ();
   Matrices.model = glm::mat4(1.0f);
 
+  
   glm::mat4 translateRectangle = glm::translate (glm::vec3(2, 0, 0));        // glTranslatef
   glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rotation*M_PI/180.0f), glm::vec3(0,0,1)); // rotate about vector (-1,1,1)
   Matrices.model *= (translateRectangle * rotateRectangle);
@@ -449,6 +504,7 @@ void draw ()
 
   // draw3DObject draws the VAO given to it using current MVP matrix
   draw3DObject(rectangle);
+  
 
   draw3DObject(circle);
   // Increment angles
@@ -512,10 +568,11 @@ GLFWwindow* initGLFW (int width, int height)
 void initGL (GLFWwindow* window, int width, int height)
 {
     /* Objects should be created before any other gl function and shaders */
-	// Create the models
+	//Create the models
 	createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
 	createRectangle ();
-	createCircle ();
+	createGround();
+  createCircle ();
 	// Create and compile our GLSL program from the shaders
 	programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );
 	// Get a handle for our "MVP" uniform
@@ -539,7 +596,7 @@ void initGL (GLFWwindow* window, int width, int height)
 
 int main (int argc, char** argv)
 {
-	int width = 600;
+	int width = 1600;
 	int height = 600;
 
   GLFWwindow* window = initGLFW(width, height);
@@ -550,7 +607,7 @@ int main (int argc, char** argv)
 
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
-
+       
         // OpenGL Draw commands
         draw();
 
