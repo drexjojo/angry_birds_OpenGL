@@ -304,7 +304,7 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
     Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 }
 
-VAO *triangle, *rectangle, *circle ,*ground ,*sky;
+VAO *triangle, *rectangle, *circle ,*ground ,*platform;
 
 
 
@@ -321,18 +321,46 @@ void createGround ()
   };
 
   static const GLfloat color_buffer_data [] = {
-    1,0,0, // color 1
-    1,0,0, // color 2
-    1,0,0, // color 3
+    0.36,0.25,0.20, // color 1
+    0.36,0.25,0.20, // color 2
+    0.36,0.25,0.20, // color 3
 
-    1,0,0, // color 3
-    1,0,0, // color 4
-    1,0,0  // color 1
+    0.36,0.25,0.20, // color 3
+    0.36,0.25,0.20, // color 4
+    0.36,0.25,0.20,  // color 1
   };
 
   
   // create3DObject creates and returns a handle to a VAO that can be used later
   ground = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
+
+}
+
+void createPlatform ()
+{
+  static const GLfloat vertex_buffer_data [] = {
+    -1,-1,0, // vertex 1
+    1,-1,0, // vertex 2
+    1, 5,0, // vertex 3
+
+    1, 5,0, // vertex 3
+    -1, 5,0, // vertex 4
+    -1,-1,0  // vertex 1
+  };
+
+  static const GLfloat color_buffer_data [] = {
+    0,0,0, // color 1
+    0,0,0, // color 2
+    0,0,0, // color 3
+
+    0,0,0, // color 3
+    0,0,0, // color 4
+    0,0,0,  // color 1
+  };
+
+  
+  // create3DObject creates and returns a handle to a VAO that can be used later
+  platform = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
 
 }
 
@@ -457,37 +485,45 @@ void draw ()
   //  Don't change unless you are sure!!
   glm::mat4 MVP;	// MVP = Projection * View * Model
 
-  // Load identity to model matrix
-  Matrices.model = glm::mat4(1.0f);
+  
 
   /* Render your scene */
 
 
   /* Rendering the ground */
+  Matrices.model = glm::mat4(1.0f);
   glm::mat4 translateground = glm::translate (glm::vec3(0, -3, 0)); // glTranslatef
   //glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
   glm::mat4 groundTransform = translateground;
   Matrices.model *= groundTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
-
   //  Don't change unless you are sure!!
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
   draw3DObject(ground); 
   
+
+  /* Rendering Platform */
   Matrices.model = glm::mat4(1.0f);
+  glm::mat4 translateplatform = glm::translate (glm::vec3(-6.5,-3.5, 0)); // glTranslatef
+  glm::mat4 scaleplatform = glm::scale (glm::vec3(-0.8,-0.5,0));
+  //glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  glm::mat4 platformTransform = translateplatform + scaleplatform;
+  Matrices.model *= platformTransform; 
+  MVP = VP * Matrices.model; // MVP = p * V * M
+  //  Don't change unless you are sure!!
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  draw3DObject(platform); 
 
 
   /* Rendering triangle */
+  Matrices.model = glm::mat4(1.0f);
   glm::mat4 translateTriangle = glm::translate (glm::vec3(triangle_x, triangle_y, triangle_z)); // glTranslatef
   glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
   glm::mat4 triangleTransform = translateTriangle * rotateTriangle;
   Matrices.model *= triangleTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
-
   //  Don't change unless you are sure!!
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
   // draw3DObject draws the VAO given to it using current MVP matrix
   draw3DObject(triangle);
 
@@ -569,10 +605,11 @@ void initGL (GLFWwindow* window, int width, int height)
 {
     /* Objects should be created before any other gl function and shaders */
 	//Create the models
-	createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
-	createRectangle ();
 	createGround();
-  createCircle ();
+  createPlatform();
+  createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
+	createRectangle ();
+	createCircle ();
 	// Create and compile our GLSL program from the shaders
 	programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );
 	// Get a handle for our "MVP" uniform
@@ -582,7 +619,7 @@ void initGL (GLFWwindow* window, int width, int height)
 	reshapeWindow (window, width, height);
 
     // Background color of the scene
-	glClearColor (0.3f, 0.3f, 0.3f, 0.0f); // R, G, B, A
+	glClearColor (0.184314,0.184314,0.309804,0); // R, G, B, A
 	glClearDepth (1.0f);
 
 	glEnable (GL_DEPTH_TEST);
