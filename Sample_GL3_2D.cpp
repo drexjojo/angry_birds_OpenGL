@@ -304,9 +304,94 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
     Matrices.projection = glm::ortho(-4.0f, 4.0f, -4.0f, 4.0f, 0.1f, 500.0f);
 }
 
-VAO *triangle, *rectangle, *circle ,*ground ,*platform;
+VAO *triangle, *rectangle, *circle ,*ground ,*platform ,*catapult1,*catapult2,*catapult3;
 
+/*void createCatapult() {
+    glColor3f(0.42, 0.28, 0.11);
+    glLineWidth(5.0);
+    glBegin(GL_LINES);
+      glVertex2i(300, 260);
+      glVertex2i(300, 260 - 60);
+    glEnd();
+    glLineWidth(3.0);
+    glBegin(GL_LINES);
+      glVertex2i(300,260);
+      glVertex2i(300 - 20, 260 + 45);
+    glEnd();
+    glBegin(GL_LINES);
+      glVertex2i(300, 260);
+      glVertex2i(300 + 20, 260 + 45);
+    glEnd();
+  }
+*/
+void createCatapult()
+{
+  static const GLfloat vertex_buffer_data1 [] = {
+    -0.05,-1,0, // vertex 1
+    0.05,-1,0, // vertex 2
+    0.05, 1,0, // vertex 3
 
+    0.05, 1,0, // vertex 3
+    -0.05, 1,0, // vertex 4
+    -0.05,-1,0  // vertex 1
+  };
+
+  static const GLfloat color_buffer_data1 [] = {
+    0.42,0.28,0.11, // color 1
+    0.42,0.28,0.11, // color 2
+    0.42,0.28,0.11, // color 3
+
+    0.42,0.28,0.11, // color 3
+    0.42,0.28,0.11, // color 4
+    0.42,0.28,0.11,  // color 1
+  };
+  catapult1 = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data1, color_buffer_data1, GL_FILL);
+
+  static const GLfloat vertex_buffer_data2 [] = {
+    -0.05,-0.5,0, // vertex 1
+    0.05,-0.5,0, // vertex 2
+    0.05, 0.5,0, // vertex 3
+
+    0.05, 0.5,0, // vertex 3
+    -0.05, 0.5,0, // vertex 4
+    -0.05,-0.5,0  // vertex 1
+  };
+
+  static const GLfloat color_buffer_data2 [] = {
+    0.42,0.28,0.11, // color 1
+    0.42,0.28,0.11, // color 2
+    0.42,0.28,0.11, // color 3
+
+    0.42,0.28,0.11, // color 3
+    0.42,0.28,0.11, // color 4
+    0.42,0.28,0.11,  // color 1
+  };
+
+  catapult2 = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data2, color_buffer_data2, GL_FILL);
+  
+  static const GLfloat vertex_buffer_data3 [] = {
+    -0.05,-0.5,0, // vertex 1
+    0.05,-0.5,0, // vertex 2
+    0.05, 0.5,0, // vertex 3
+
+    0.05, 0.5,0, // vertex 3
+    -0.05, 0.5,0, // vertex 4
+    -0.05,-0.5,0  // vertex 1
+  };
+
+  static const GLfloat color_buffer_data3 [] = {
+    0.42,0.28,0.11, // color 1
+    0.42,0.28,0.11, // color 2
+    0.42,0.28,0.11, // color 3
+
+    0.42,0.28,0.11, // color 3
+    0.42,0.28,0.11, // color 4
+    0.42,0.28,0.11,  // color 1
+  };
+
+  catapult3 = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data3, color_buffer_data3, GL_FILL);
+  
+}
 
 void createGround ()
 {
@@ -321,13 +406,12 @@ void createGround ()
   };
 
   static const GLfloat color_buffer_data [] = {
-    0.36,0.25,0.20, // color 1
-    0.36,0.25,0.20, // color 2
-    0.36,0.25,0.20, // color 3
-
-    0.36,0.25,0.20, // color 3
-    0.36,0.25,0.20, // color 4
-    0.36,0.25,0.20,  // color 1
+    0.196078,0.5,0.196078, 
+    0.196078,0.5,0.196078, 
+    0.196078,0.5,0.196078, 
+    0.196078,0.5,0.196078, 
+    0.196078,0.5,0.196078, 
+    0.196078,0.5,0.196078, 
   };
 
   
@@ -418,7 +502,7 @@ void createRectangle ()
 void createCircle ()
 {
   int num_segments = 360;
-  float r = 0.7;
+  float r = 0.2;
   float theta = 2 * 3.1415926 / float(num_segments); 
   float c = cosf(theta);//precalculate the sine and cosine
   float s = sinf(theta);
@@ -452,6 +536,22 @@ void createCircle ()
 float camera_rotation_angle = 90;
 float rectangle_rotation = 0;
 float triangle_rotation = 0;
+
+/*void projectile()
+{
+  currtime = glfwGetTime();
+  vy_circle2 = vyi_circle2 - (gravity)*(currtime*0.08);
+  vx_circle2 = vxi_circle2;
+  x_circle2 += vx_circle2;
+  y_circle2 += vy_circle2 ;
+  no_bounces++; 
+  
+  if(y_circle2 < -30.2)
+  {
+    vy_circle2 = -vy_circle2;
+  }
+
+}*/
 
 /* Render the scene with openGL */
 /* Edit this function according to your assignment */
@@ -490,10 +590,43 @@ void draw ()
   /* Render your scene */
 
 
+  /* Rendering the Catapult*/
+  Matrices.model = glm::mat4(1.0f);
+  glm::mat4 translatecatapult1 = glm::translate (glm::vec3(-5.7,-4.8,0));
+  glm::mat4 scalecatapult1 = glm::scale (glm::vec3(0.5,0.6,0));
+  glm::mat4 transformcatapult1 = scalecatapult1;
+  Matrices.model += translatecatapult1;
+  Matrices.model *= transformcatapult1;
+  MVP = VP * Matrices.model; // MVP = p * V * M
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  draw3DObject(catapult1);
+
+  Matrices.model = glm::mat4(1.0f);
+  glm::mat4 translatecatapult2 = glm::translate (glm::vec3(-5.95,-3.1,0));
+  glm::mat4 scalecatapult2 = glm::scale (glm::vec3(0.5,0.6,0));
+  glm::mat4 rotatecatapult2 = glm::rotate((float)(0.5), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  Matrices.model += translatecatapult2;
+  Matrices.model *= scalecatapult2;
+  Matrices.model *= rotatecatapult2;
+  MVP = VP * Matrices.model; // MVP = p * V * M
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  draw3DObject(catapult2); 
+
+  Matrices.model = glm::mat4(1.0f);
+  glm::mat4 translatecatapult3 = glm::translate (glm::vec3(-5.45,-3.1,0));
+  glm::mat4 scalecatapult3 = glm::scale (glm::vec3(0.5,0.6,0));
+  glm::mat4 rotatecatapult3 = glm::rotate((float)(-0.5), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  Matrices.model += translatecatapult3;
+  Matrices.model *= scalecatapult3;
+  Matrices.model *= rotatecatapult3;
+  MVP = VP * Matrices.model; // MVP = p * V * M
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  draw3DObject(catapult3); 
+
+
   /* Rendering the ground */
   Matrices.model = glm::mat4(1.0f);
-  glm::mat4 translateground = glm::translate (glm::vec3(0, -3, 0)); // glTranslatef
-  //glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  glm::mat4 translateground = glm::translate (glm::vec3(0, -4, 0)); // glTranslatef
   glm::mat4 groundTransform = translateground;
   Matrices.model *= groundTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
@@ -503,7 +636,7 @@ void draw ()
   
 
   /* Rendering Platform */
-  Matrices.model = glm::mat4(1.0f);
+  /*Matrices.model = glm::mat4(1.0f);
   glm::mat4 translateplatform = glm::translate (glm::vec3(-6.5,-3.5, 0)); // glTranslatef
   glm::mat4 scaleplatform = glm::scale (glm::vec3(-0.8,-0.5,0));
   //glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
@@ -513,7 +646,7 @@ void draw ()
   //  Don't change unless you are sure!!
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(platform); 
-
+*/
 
   /* Rendering triangle */
   Matrices.model = glm::mat4(1.0f);
@@ -525,7 +658,7 @@ void draw ()
   //  Don't change unless you are sure!!
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   // draw3DObject draws the VAO given to it using current MVP matrix
-  draw3DObject(triangle);
+  //draw3DObject(triangle);
 
   // Pop matrix to undo transformations till last push matrix instead of recomputing model matrix
   // glPopMatrix ();
@@ -539,10 +672,21 @@ void draw ()
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
   // draw3DObject draws the VAO given to it using current MVP matrix
-  draw3DObject(rectangle);
+  //draw3DObject(rectangle);
   
 
+  /* Rendering circle */
+  Matrices.model = glm::mat4(1.0f);
+  glm::mat4 translatecircle = glm::translate (glm::vec3(-3.2, -0.3, 0)); // glTranslatef
+  //glm::mat4 rotatecircle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  glm::mat4 circleTransform = translatecircle;
+  Matrices.model *= circleTransform; 
+  MVP = VP * Matrices.model; // MVP = p * V * M
+  //  Don't change unless you are sure!!
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(circle);
+
+
   // Increment angles
   float increments = 1;
 
@@ -604,7 +748,9 @@ GLFWwindow* initGLFW (int width, int height)
 void initGL (GLFWwindow* window, int width, int height)
 {
     /* Objects should be created before any other gl function and shaders */
-	//Create the models
+	
+  //Create the models
+  createCatapult();
 	createGround();
   createPlatform();
   createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
@@ -619,7 +765,7 @@ void initGL (GLFWwindow* window, int width, int height)
 	reshapeWindow (window, width, height);
 
     // Background color of the scene
-	glClearColor (0.184314,0.184314,0.309804,0); // R, G, B, A
+	glClearColor (0.74902,0.847059, 1.947059,0); // R, G, B, A
 	glClearDepth (1.0f);
 
 	glEnable (GL_DEPTH_TEST);
@@ -634,7 +780,7 @@ void initGL (GLFWwindow* window, int width, int height)
 int main (int argc, char** argv)
 {
 	int width = 1600;
-	int height = 600;
+	int height = 700;
 
   GLFWwindow* window = initGLFW(width, height);
 
