@@ -24,6 +24,13 @@ struct VAO {
 };
 typedef struct VAO VAO;
 
+struct BIRD {
+    GLfloat xi,yi;
+    VAO *birdshape,*mouth,*lefteye,*righteye;
+    bool flag;
+};
+typedef struct BIRD BIRD;
+
 struct GLMatrices {
 	glm::mat4 projection;
 	glm::mat4 model;
@@ -204,11 +211,151 @@ void draw3DObject (struct VAO* vao)
  * Customizable functions *
  **************************/
 
+BIRD bird1;
+BIRD bird2;
+BIRD bird3;
+BIRD bird4;
+BIRD bird5;
+BIRD create_angrybirds( BIRD bird,float initx,float inity)
+{
+  
+  bird.flag = false;
+  bird.xi =initx;
+  bird.yi =inity;
+  int num_segments = 360 , k=0,j=0;
+  float r = 0.2;
+  float theta = 2 * 3.1415926 / float(num_segments); 
+  float c = cosf(theta);
+  float s = sinf(theta);
+  float t;
+  float cx =0,cy=0;
+
+  float x = r;
+  float y = 0; 
+  GLfloat vertex_buffer_data1 [1080]; 
+  GLfloat color_buffer_data1 [1080]; 
+  for(int i = 0; i < num_segments; i++) 
+  { 
+    float yo = x+cx;
+    float oy = y+cy;
+    vertex_buffer_data1[k++] = yo;
+    vertex_buffer_data1[k++] = oy;
+    vertex_buffer_data1[k++] = 0;
+    color_buffer_data1[j++]=1;
+    color_buffer_data1[j++]=0;
+    color_buffer_data1[j++]=0;
+
+    t = x;
+    x = c * x - s * y;
+    y = s * t + c * y;
+  }
+
+  bird.birdshape = create3DObject(GL_TRIANGLE_FAN,360,vertex_buffer_data1,color_buffer_data1,GL_FILL) ;
+  
+  GLfloat vertex_buffer_data2 [6]; 
+  GLfloat color_buffer_data2 [6];
+  vertex_buffer_data2[0] = 0.05; 
+  vertex_buffer_data2[1] = -0.1;
+  vertex_buffer_data2[2] = 0;
+  vertex_buffer_data2[3] = -0.05;
+  vertex_buffer_data2[4] = -0.1;
+  vertex_buffer_data2[5] = 0;
+  color_buffer_data2 [0] =0; 
+  color_buffer_data2 [1] =0; 
+  color_buffer_data2 [2] =0; 
+  color_buffer_data2 [3] =0;
+  color_buffer_data2 [4] =0;
+  color_buffer_data2 [5] =0;
+  bird.mouth =  create3DObject(GL_LINES,2,vertex_buffer_data2,color_buffer_data2,GL_FILL) ;
+
+  GLfloat vertex_buffer_data3 [9]; 
+  GLfloat color_buffer_data3 [9];
+  vertex_buffer_data3[0] = -0.15; 
+  vertex_buffer_data3[1] = 0.1;
+  vertex_buffer_data3[2] = 0;
+  vertex_buffer_data3[3] = 0;
+  vertex_buffer_data3[4] = 0.1;
+  vertex_buffer_data3[5] = 0;
+  vertex_buffer_data3[6] = -0.075;
+  vertex_buffer_data3[7] = 0;
+  vertex_buffer_data3[8] = 0;
+  color_buffer_data3 [0] =0; 
+  color_buffer_data3 [1] =0; 
+  color_buffer_data3 [2] =0; 
+  color_buffer_data3 [3] =0;
+  color_buffer_data3 [4] =0;
+  color_buffer_data3 [5] =0;
+  color_buffer_data3 [6] =0;
+  color_buffer_data3 [7] =0;
+  color_buffer_data3 [8] =0;
+  bird.lefteye =  create3DObject(GL_TRIANGLES,3,vertex_buffer_data3,color_buffer_data3,GL_FILL) ;
+
+  GLfloat vertex_buffer_data4 [9]; 
+  GLfloat color_buffer_data4 [9];
+  vertex_buffer_data4[0] = 0.15; 
+  vertex_buffer_data4[1] = 0.1;
+  vertex_buffer_data4[2] = 0;
+  vertex_buffer_data4[3] = 0;
+  vertex_buffer_data4[4] = 0.1;
+  vertex_buffer_data4[5] = 0;
+  vertex_buffer_data4[6] = 0.075;
+  vertex_buffer_data4[7] = 0;
+  vertex_buffer_data4[8] = 0;
+  color_buffer_data4 [0] =0; 
+  color_buffer_data4 [1] =0; 
+  color_buffer_data4 [2] =0; 
+  color_buffer_data4 [3] =0;
+  color_buffer_data4 [4] =0;
+  color_buffer_data4 [5] =0;
+  color_buffer_data4 [6] =0;
+  color_buffer_data4 [7] =0;
+  color_buffer_data4 [8] =0;
+  bird.righteye =  create3DObject(GL_TRIANGLES,3,vertex_buffer_data4,color_buffer_data4,GL_FILL) ;
+  return bird;
+}
+void draw_angrybird(BIRD bird,glm::mat4 MVP,glm::mat4 VP)
+{
+  Matrices.model = glm::mat4(1.0f);
+  glm::mat4 translatebird = glm::translate (glm::vec3(bird.xi, bird.yi, 0));
+  glm::mat4 scalebird = glm::scale (glm::vec3(0.5,1.5,0));
+  Matrices.model += translatebird;
+  Matrices.model *= scalebird; 
+  MVP = VP * Matrices.model; // MVP = p * V * M
+  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  draw3DObject(bird.birdshape);
+  Matrices.model = glm::mat4(1.0f);
+  draw3DObject(bird.mouth);
+  Matrices.model = glm::mat4(1.0f);
+  draw3DObject(bird.lefteye);
+  Matrices.model = glm::mat4(1.0f);
+  draw3DObject(bird.righteye);
+} 
+  
+  /*void change_flag() {
+    if(flag) 
+      flag = false;
+    else
+      flag = true;
+  }
+  
+  void move_bird(int x, int y) {
+    xi = x;
+    yi = y;
+  }
+  
+  void back_to_initial(int x, int y) {
+    xi = x;
+    yi = y;
+    flag = false;
+  }
+};*/
+
 float triangle_rot_dir = 1;
 float rectangle_rot_dir = 1;
 bool triangle_rot_status = true;
 bool rectangle_rot_status = true;
 float triangle_x = 0,triangle_y = 0,triangle_z = 0;
+
 
 
 /* Executed when a regular key is pressed/released/held-down */
@@ -306,24 +453,7 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
 
 VAO *triangle, *rectangle, *circle ,*ground ,*platform ,*catapult1,*catapult2,*catapult3;
 
-/*void createCatapult() {
-    glColor3f(0.42, 0.28, 0.11);
-    glLineWidth(5.0);
-    glBegin(GL_LINES);
-      glVertex2i(300, 260);
-      glVertex2i(300, 260 - 60);
-    glEnd();
-    glLineWidth(3.0);
-    glBegin(GL_LINES);
-      glVertex2i(300,260);
-      glVertex2i(300 - 20, 260 + 45);
-    glEnd();
-    glBegin(GL_LINES);
-      glVertex2i(300, 260);
-      glVertex2i(300 + 20, 260 + 45);
-    glEnd();
-  }
-*/
+
 void createCatapult()
 {
   static const GLfloat vertex_buffer_data1 [] = {
@@ -420,40 +550,11 @@ void createGround ()
 
 }
 
-void createPlatform ()
-{
-  static const GLfloat vertex_buffer_data [] = {
-    -1,-1,0, // vertex 1
-    1,-1,0, // vertex 2
-    1, 5,0, // vertex 3
-
-    1, 5,0, // vertex 3
-    -1, 5,0, // vertex 4
-    -1,-1,0  // vertex 1
-  };
-
-  static const GLfloat color_buffer_data [] = {
-    0,0,0, // color 1
-    0,0,0, // color 2
-    0,0,0, // color 3
-
-    0,0,0, // color 3
-    0,0,0, // color 4
-    0,0,0,  // color 1
-  };
-
-  
-  // create3DObject creates and returns a handle to a VAO that can be used later
-  platform = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
-
-}
 
 // Creates the triangle object used in this sample code
 void createTriangle ()
 {
-  /* ONLY vertices between the bounds specified in glm::ortho will be visible on screen */
-
-  /* Define vertex array as used in glBegin (GL_TRIANGLES) */
+  
   static const GLfloat vertex_buffer_data [] = {
     0, 1,0, // vertex 0
     -1,-1,0, // vertex 1
@@ -466,11 +567,9 @@ void createTriangle ()
     0,0,1, // color 2
   };
 
-  // create3DObject creates and returns a handle to a VAO that can be used later
-  triangle = create3DObject(GL_TRIANGLES, 3, vertex_buffer_data, color_buffer_data, GL_FILL);
+   triangle = create3DObject(GL_TRIANGLES, 3, vertex_buffer_data, color_buffer_data, GL_FILL);
 }
 
-// Creates the rectangle object used in this sample code
 void createRectangle ()
 {
   // GL3 accepts only Triangles. Quads are not supported
@@ -499,59 +598,12 @@ void createRectangle ()
   rectangle = create3DObject(GL_TRIANGLES, 6, vertex_buffer_data, color_buffer_data, GL_FILL);
 }
 
-void createCircle ()
-{
-  int num_segments = 360;
-  float r = 0.2;
-  float theta = 2 * 3.1415926 / float(num_segments); 
-  float c = cosf(theta);//precalculate the sine and cosine
-  float s = sinf(theta);
-  float t;
-  float cx =0,cy=0;
-
-  float x = r;
-  float y = 0; 
-  GLfloat vertex_buffer_data [1080]; 
-  GLfloat color_buffer_data [1080]; 
-  for(int ii = 0; ii < num_segments * 3; ii+=3) 
-  { 
-    float yo = x+cx;
-    float oy = y+cy;
-    vertex_buffer_data[ii] = yo;
-    vertex_buffer_data[ii+1] = oy;
-    vertex_buffer_data[ii+2] = 0;
-    color_buffer_data[ii]=1;
-    color_buffer_data[ii+1]=0;
-    color_buffer_data[ii+2]=0;
-
-    t = x;
-    x = c * x - s * y;
-    y = s * t + c * y;
-  }
-
-  circle = create3DObject(GL_TRIANGLE_FAN,360,vertex_buffer_data,color_buffer_data,GL_FILL) ;
- 
-}
 
 float camera_rotation_angle = 90;
 float rectangle_rotation = 0;
 float triangle_rotation = 0;
 
-/*void projectile()
-{
-  currtime = glfwGetTime();
-  vy_circle2 = vyi_circle2 - (gravity)*(currtime*0.08);
-  vx_circle2 = vxi_circle2;
-  x_circle2 += vx_circle2;
-  y_circle2 += vy_circle2 ;
-  no_bounces++; 
-  
-  if(y_circle2 < -30.2)
-  {
-    vy_circle2 = -vy_circle2;
-  }
 
-}*/
 
 /* Render the scene with openGL */
 /* Edit this function according to your assignment */
@@ -590,6 +642,7 @@ void draw ()
   /* Render your scene */
 
 
+  
   /* Rendering the Catapult*/
   Matrices.model = glm::mat4(1.0f);
   glm::mat4 translatecatapult1 = glm::translate (glm::vec3(-5.7,-4.8,0));
@@ -630,34 +683,25 @@ void draw ()
   glm::mat4 groundTransform = translateground;
   Matrices.model *= groundTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
-  //  Don't change unless you are sure!!
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(ground); 
-  
+   
 
-  /* Rendering Platform */
-  /*Matrices.model = glm::mat4(1.0f);
-  glm::mat4 translateplatform = glm::translate (glm::vec3(-6.5,-3.5, 0)); // glTranslatef
-  glm::mat4 scaleplatform = glm::scale (glm::vec3(-0.8,-0.5,0));
-  //glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
-  glm::mat4 platformTransform = translateplatform + scaleplatform;
-  Matrices.model *= platformTransform; 
-  MVP = VP * Matrices.model; // MVP = p * V * M
-  //  Don't change unless you are sure!!
-  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-  draw3DObject(platform); 
-*/
+  /* Rendering angrybirds */
+  draw_angrybird(bird1,MVP,VP);
+  draw_angrybird(bird2,MVP,VP);
+  draw_angrybird(bird3,MVP,VP);
+  draw_angrybird(bird4,MVP,VP);
+  draw_angrybird(bird5,MVP,VP);
 
-  /* Rendering triangle */
+  /* Rendering triangle 
   Matrices.model = glm::mat4(1.0f);
   glm::mat4 translateTriangle = glm::translate (glm::vec3(triangle_x, triangle_y, triangle_z)); // glTranslatef
   glm::mat4 rotateTriangle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
   glm::mat4 triangleTransform = translateTriangle * rotateTriangle;
   Matrices.model *= triangleTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
-  //  Don't change unless you are sure!!
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-  // draw3DObject draws the VAO given to it using current MVP matrix
   //draw3DObject(triangle);
 
   // Pop matrix to undo transformations till last push matrix instead of recomputing model matrix
@@ -673,19 +717,12 @@ void draw ()
 
   // draw3DObject draws the VAO given to it using current MVP matrix
   //draw3DObject(rectangle);
+  */
+
+
   
-
-  /* Rendering circle */
-  Matrices.model = glm::mat4(1.0f);
-  glm::mat4 translatecircle = glm::translate (glm::vec3(-3.2, -0.3, 0)); // glTranslatef
-  //glm::mat4 rotatecircle = glm::rotate((float)(triangle_rotation*M_PI/50.0f), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
-  glm::mat4 circleTransform = translatecircle;
-  Matrices.model *= circleTransform; 
-  MVP = VP * Matrices.model; // MVP = p * V * M
-  //  Don't change unless you are sure!!
-  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-  draw3DObject(circle);
-
+  
+  
 
   // Increment angles
   float increments = 1;
@@ -750,12 +787,17 @@ void initGL (GLFWwindow* window, int width, int height)
     /* Objects should be created before any other gl function and shaders */
 	
   //Create the models
+  bird1 = create_angrybirds(bird1,-5.7,-2.8);
+  bird2 = create_angrybirds(bird2,-6,-5.4);
+  bird3 = create_angrybirds(bird3,-6.5,-5.4);
+  bird4 = create_angrybirds(bird4,-7,-5.4);
+  bird5 = create_angrybirds(bird5,-7.5,-5.4);
   createCatapult();
 	createGround();
-  createPlatform();
+  
   createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
 	createRectangle ();
-	createCircle ();
+	//createCircle ();
 	// Create and compile our GLSL program from the shaders
 	programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );
 	// Get a handle for our "MVP" uniform
