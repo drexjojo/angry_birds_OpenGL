@@ -30,7 +30,7 @@ typedef struct VAO VAO;
 struct BIRD {
     GLfloat xi,yi,xspeed,yspeed,time;
     VAO *birdshape,*mouth,*lefteye,*righteye;
-    bool flag,turn;
+    bool flag,turn,has_collided;
 };
 typedef struct BIRD BIRD;
 
@@ -220,20 +220,22 @@ void draw3DObject (struct VAO* vao)
  * Customizable functions *
  **************************/
 
-BIRD birds[5];
+BIRD birds[6];
 POWERBAR powerbar;
 bool is_it_time = true;
 BIRD create_angrybirds( BIRD bird,float initx,float inity)
 {
   
   bird.flag = false;
+  bird.time=0;
   bird.turn = false;
+  bird.has_collided = false;
   bird.xi =initx;
   bird.yi =inity;
   bird.xspeed =0;
   bird.yspeed =0;
   int num_segments = 360 , k=0,j=0;
-  float r = 0.2;
+  float r = 0.24;
   float theta = 2 * 3.1415926 / float(num_segments); 
   float c = cosf(theta);
   float s = sinf(theta);
@@ -327,9 +329,9 @@ void draw_angrybird(BIRD bird,glm::mat4 MVP,glm::mat4 VP)
 {
   Matrices.model = glm::mat4(1.0f);
   glm::mat4 translatebird = glm::translate (glm::vec3(bird.xi, bird.yi, 0));
-  glm::mat4 scalebird = glm::scale (glm::vec3(1.2,1.2,0));
-  Matrices.model += translatebird;
-  Matrices.model *= scalebird; 
+  //glm::mat4 scalebird = glm::scale (glm::vec3(1.2,1.2,0));
+  Matrices.model *= translatebird;
+  //Matrices.model *= scalebird; 
   MVP = VP * Matrices.model; // MVP = p * V * M
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(bird.birdshape);
@@ -341,12 +343,45 @@ void draw_angrybird(BIRD bird,glm::mat4 MVP,glm::mat4 VP)
   draw3DObject(bird.righteye);
 } 
 
+
+BIRD collisionground(BIRD bird)
+{
+  glm::vec2 center(bird.xi,bird.yi);
+  glm::vec2 particle_half_extents(16 / 2, 1 / 2);
+  glm::vec2 particle_center(0,-2.6);
+    // Get difference vector between both centers
+  glm::vec2 difference = center - particle_center;
+  glm::vec2 clamped = glm::clamp(difference, -particle_half_extents, particle_half_extents);
+    // Add clamped value to AABB_center and we get the value of box closest to circle
+  glm::vec2 closest = particle_center + clamped;
+    // Retrieve vector between center circle and closest point AABB and check if length <= radius
+  difference = closest - center;
+  if( glm::length(difference) < 0.24)
+  {
+    //base = ammo[i].y - 0.2; 
+    //iscollideland =1;
+    bird.yi = -2.46;
+    bird.yspeed = -1*(bird.yspeed /3);
+    if(bird.yspeed <= 0)
+      bird.yspeed=0;
+    bird.xspeed = bird.xspeed/2;
+    bird.has_collided = true;
+    cout << "collided land" << endl;
+  }
+
+  else
+    bird.has_collided = false;  
+  return bird;
+}
+
 BIRD flight(BIRD bird)
 {
+   
   bird.time += 0.005f;
   bird.yspeed = bird.yspeed - (bird.time)*(0.08);
   bird.xi += bird.xspeed;
   bird.yi += bird.yspeed ;
+
   return bird ;
  
 }
@@ -360,11 +395,11 @@ BIRD changeangle(BIRD bird,float power=0.3)
 
 BIRD move_next_bird(BIRD bird)
 {
-    if(bird.xi <= -9.5)
+    if(bird.xi <= -5.3)
       bird.xi += 0.1;
-    if(bird.xi >= -9.5 && bird.yi <= -2.2)
+    if(bird.xi >= -5.3 && bird.yi <= -1.2)
       bird.yi += 0.1;
-    if (bird.xi >= -9.5 && bird.yi >= -2.2)
+    if (bird.xi >= -5.3 && bird.yi >= -1.2)
     {
       is_it_time = true;
     }
@@ -522,6 +557,8 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
 
 VAO *triangle, *rectangle, *circle ,*ground ,*platform ,*catapult1,*catapult2,*catapult3;
 
+
+
 void createPowerbar()
 {
   powerbar.angle = 45;
@@ -610,13 +647,13 @@ void createCatapult()
 void createGround ()
 {
   static const GLfloat vertex_buffer_data [] = {
-    -4,-1,0, // vertex 1
-    4,-1,0, // vertex 2
-    4, 1,0, // vertex 3
+    -8,-0.5,0, // vertex 1
+    8,-0.5,0, // vertex 2
+    8, 0.5,0, // vertex 3
 
-    4, 1,0, // vertex 3
-    -4, 1,0, // vertex 4
-    -4,-1,0  // vertex 1
+    8, 0.5,0, // vertex 3
+    -8, 0.5,0, // vertex 4
+    -8,-0.5,0  // vertex 1
   };
 
   static const GLfloat color_buffer_data [] = {
@@ -729,33 +766,30 @@ void draw ()
   
   /* Rendering the Catapult*/
   Matrices.model = glm::mat4(1.0f);
-  glm::mat4 translatecatapult1 = glm::translate (glm::vec3(-9.5,-4.2,0));
+  glm::mat4 translatecatapult1 = glm::translate (glm::vec3(-5.22,-2.1,0));
   glm::mat4 scalecatapult1 = glm::scale (glm::vec3(1,0.6,0));
-  glm::mat4 transformcatapult1 = scalecatapult1;
-  Matrices.model += translatecatapult1;
+  glm::mat4 transformcatapult1 = translatecatapult1*scalecatapult1;
   Matrices.model *= transformcatapult1;
   MVP = VP * Matrices.model; // MVP = p * V * M
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(catapult1);
 
   Matrices.model = glm::mat4(1.0f);
-  glm::mat4 translatecatapult2 = glm::translate (glm::vec3(-10,-2.5,0));
-  glm::mat4 scalecatapult2 = glm::scale (glm::vec3(1,0.6,0));
-  glm::mat4 rotatecatapult2 = glm::rotate((float)(DEG2RAD(30)), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
-  Matrices.model += translatecatapult2;
-  Matrices.model *= scalecatapult2;
-  Matrices.model *= rotatecatapult2;
+  glm::mat4 translatecatapult2 = glm::translate (glm::vec3(-5.47,-1.25,0));
+  glm::mat4 scalecatapult2 = glm::scale (glm::vec3(1,0.8,0));
+  glm::mat4 rotatecatapult2 = glm::rotate((float)(DEG2RAD(45)), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  glm::mat4 transformcatapult2 = translatecatapult2*rotatecatapult2*scalecatapult2;
+  Matrices.model *= transformcatapult2;
   MVP = VP * Matrices.model; // MVP = p * V * M
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(catapult2); 
 
   Matrices.model = glm::mat4(1.0f);
-  glm::mat4 translatecatapult3 = glm::translate (glm::vec3(-9,-2.5,0));
-  glm::mat4 scalecatapult3 = glm::scale (glm::vec3(1,0.6,0));
-  glm::mat4 rotatecatapult3 = glm::rotate((float)(DEG2RAD(-30)), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
-  Matrices.model += translatecatapult3;
-  Matrices.model *= scalecatapult3;
-  Matrices.model *= rotatecatapult3;
+  glm::mat4 translatecatapult3 = glm::translate (glm::vec3(-4.99,-1.25,0));
+  glm::mat4 scalecatapult3 = glm::scale (glm::vec3(1,0.8,0));
+  glm::mat4 rotatecatapult3 = glm::rotate((float)(DEG2RAD(-45)), glm::vec3(0,0,1));  // rotate about vector (1,0,0)
+  glm::mat4 transformcatapult3 = translatecatapult3*rotatecatapult3*scalecatapult3;
+  Matrices.model *= transformcatapult3;
   MVP = VP * Matrices.model; // MVP = p * V * M
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(catapult3); 
@@ -763,10 +797,8 @@ void draw ()
 
   /* Rendering the ground */
   Matrices.model = glm::mat4(1.0f);
-  glm::mat4 translateground = glm::translate (glm::vec3(0, -3.7, 0)); // glTranslatef
-  glm::mat4 scaleground = glm::scale (glm::vec3(2, 1, 0));
+  glm::mat4 translateground = glm::translate (glm::vec3(0, -3.2, 0)); // glTranslatef
   glm::mat4 groundTransform = translateground;
-  Matrices.model *= scaleground;
   Matrices.model *= groundTransform; 
   MVP = VP * Matrices.model; // MVP = p * V * M
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
@@ -774,13 +806,10 @@ void draw ()
   
   /* Rendering the powerbar */
   Matrices.model = glm::mat4(1.0f);
-  glm::mat4 translatebar = glm::translate (glm::vec3(-4.50, -1, 0));
+  glm::mat4 translatebar = glm::translate (glm::vec3(-5, -1, 0));
   glm::mat4 rotatebar = glm::rotate((float)(powerbar.angle*M_PI/180.0f), glm::vec3(0,0,1));
   glm::mat4 scalebar = glm::scale (glm::vec3(powerbar.length,1, 0)); 
   glm::mat4 transformbar = translatebar*rotatebar*scalebar;
-  // Matrices.model += translatebar;
-  // Matrices.model *= scalebar; 
-  // Matrices.model *= rotatebar ;
   Matrices.model *= transformbar;
   MVP = VP * Matrices.model; // MVP = p * V * M
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
@@ -790,18 +819,19 @@ void draw ()
 
   int lolo;
   
-  for(lolo=0;lolo<5;lolo++)
+  for(lolo=0;lolo<6;lolo++)
   {
       if (birds[lolo].flag==true)
       {
         is_it_time = false;
+        birds[lolo] = collisionground(birds[lolo]);
         birds[lolo] = flight(birds[lolo]);
         birds[lolo+1] = move_next_bird(birds[lolo+1]);
       }
      draw_angrybird(birds[lolo],MVP,VP);
   }
   
-
+  
 
    /* Rendering triangle 
   Matrices.model = glm::mat4(1.0f);
@@ -892,13 +922,13 @@ void initGL (GLFWwindow* window, int width, int height)
 	
   //Create the models
   int i;
-  float xpos=-11,ypos=-4.95;
-  birds[0] = create_angrybirds(birds[0],-9.5,-2.2);
+  float xpos=-5.6,ypos=-2.5;
+  birds[0] = create_angrybirds(birds[0],-5.2,-1.1);
   birds[0].turn=true;
-  for(i=1;i<5;i++)
+  for(i=1;i<6;i++)
   {
     birds[i] = create_angrybirds(birds[i],xpos,ypos);
-    xpos -=1;
+    xpos -=0.5;
   }
   createPowerbar();
   createCatapult();
