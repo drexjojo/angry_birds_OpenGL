@@ -358,15 +358,13 @@ BIRD collisionground(BIRD bird)
   difference = closest - center;
   if( glm::length(difference) < 0.24)
   {
-    //base = ammo[i].y - 0.2; 
-    //iscollideland =1;
     bird.yi = -2.46;
-    bird.yspeed = -1*(bird.yspeed /3);
+    bird.yspeed = -1*(bird.yspeed/2);
     if(bird.yspeed <= 0)
       bird.yspeed=0;
     bird.xspeed = bird.xspeed/2;
     bird.has_collided = true;
-    cout << "collided land" << endl;
+    //cout << "collided land" << endl;
   }
 
   else
@@ -453,7 +451,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
             case GLFW_KEY_SPACE:
                 if(is_it_time == true)
                 {
-                  for(int i=0;i<5;i++)
+                  for(int i=0;i<6;i++)
                   {
                     if (birds[i].turn == true)
                     {
@@ -461,7 +459,7 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
                       birds[i]=changeangle(birds[i],powerbar.length);
                       birds[i].flag = true;
                       birds[i].turn = false;
-                      if(i!=4)
+                      if(i!=5)
                       {
                         birds[i+1].turn=true;
                         
