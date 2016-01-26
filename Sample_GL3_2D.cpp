@@ -41,10 +41,10 @@ struct POWERBAR {
 typedef struct POWERBAR POWERBAR;
 
 struct GLMatrices {
-	glm::mat4 projection;
-	glm::mat4 model;
-	glm::mat4 view;
-	GLuint MatrixID;
+  glm::mat4 projection;
+  glm::mat4 model;
+  glm::mat4 view;
+  GLuint MatrixID;
 } Matrices;
 
 GLuint programID;
@@ -52,78 +52,78 @@ GLuint programID;
 /* Function to load Shaders - Use it as it is */
 GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path) {
 
-	// Create the shaders
-	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+  // Create the shaders
+  GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+  GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-	// Read the Vertex Shader code from the file
-	std::string VertexShaderCode;
-	std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
-	if(VertexShaderStream.is_open())
-	{
-		std::string Line = "";
-		while(getline(VertexShaderStream, Line))
-			VertexShaderCode += "\n" + Line;
-		VertexShaderStream.close();
-	}
+  // Read the Vertex Shader code from the file
+  std::string VertexShaderCode;
+  std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
+  if(VertexShaderStream.is_open())
+  {
+    std::string Line = "";
+    while(getline(VertexShaderStream, Line))
+      VertexShaderCode += "\n" + Line;
+    VertexShaderStream.close();
+  }
 
-	// Read the Fragment Shader code from the file
-	std::string FragmentShaderCode;
-	std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
-	if(FragmentShaderStream.is_open()){
-		std::string Line = "";
-		while(getline(FragmentShaderStream, Line))
-			FragmentShaderCode += "\n" + Line;
-		FragmentShaderStream.close();
-	}
+  // Read the Fragment Shader code from the file
+  std::string FragmentShaderCode;
+  std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
+  if(FragmentShaderStream.is_open()){
+    std::string Line = "";
+    while(getline(FragmentShaderStream, Line))
+      FragmentShaderCode += "\n" + Line;
+    FragmentShaderStream.close();
+  }
 
-	GLint Result = GL_FALSE;
-	int InfoLogLength;
+  GLint Result = GL_FALSE;
+  int InfoLogLength;
 
-	// Compile Vertex Shader
-	printf("Compiling shader : %s\n", vertex_file_path);
-	char const * VertexSourcePointer = VertexShaderCode.c_str();
-	glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
-	glCompileShader(VertexShaderID);
+  // Compile Vertex Shader
+  printf("Compiling shader : %s\n", vertex_file_path);
+  char const * VertexSourcePointer = VertexShaderCode.c_str();
+  glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
+  glCompileShader(VertexShaderID);
 
-	// Check Vertex Shader
-	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	std::vector<char> VertexShaderErrorMessage(InfoLogLength);
-	glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-	fprintf(stdout, "%s\n", &VertexShaderErrorMessage[0]);
+  // Check Vertex Shader
+  glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
+  glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+  std::vector<char> VertexShaderErrorMessage(InfoLogLength);
+  glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+  fprintf(stdout, "%s\n", &VertexShaderErrorMessage[0]);
 
-	// Compile Fragment Shader
-	printf("Compiling shader : %s\n", fragment_file_path);
-	char const * FragmentSourcePointer = FragmentShaderCode.c_str();
-	glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
-	glCompileShader(FragmentShaderID);
+  // Compile Fragment Shader
+  printf("Compiling shader : %s\n", fragment_file_path);
+  char const * FragmentSourcePointer = FragmentShaderCode.c_str();
+  glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
+  glCompileShader(FragmentShaderID);
 
-	// Check Fragment Shader
-	glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	std::vector<char> FragmentShaderErrorMessage(InfoLogLength);
-	glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-	fprintf(stdout, "%s\n", &FragmentShaderErrorMessage[0]);
+  // Check Fragment Shader
+  glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
+  glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+  std::vector<char> FragmentShaderErrorMessage(InfoLogLength);
+  glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+  fprintf(stdout, "%s\n", &FragmentShaderErrorMessage[0]);
 
-	// Link the program
-	fprintf(stdout, "Linking program\n");
-	GLuint ProgramID = glCreateProgram();
-	glAttachShader(ProgramID, VertexShaderID);
-	glAttachShader(ProgramID, FragmentShaderID);
-	glLinkProgram(ProgramID);
+  // Link the program
+  fprintf(stdout, "Linking program\n");
+  GLuint ProgramID = glCreateProgram();
+  glAttachShader(ProgramID, VertexShaderID);
+  glAttachShader(ProgramID, FragmentShaderID);
+  glLinkProgram(ProgramID);
 
-	// Check the program
-	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-	std::vector<char> ProgramErrorMessage( max(InfoLogLength, int(1)) );
-	glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-	fprintf(stdout, "%s\n", &ProgramErrorMessage[0]);
+  // Check the program
+  glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+  glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+  std::vector<char> ProgramErrorMessage( max(InfoLogLength, int(1)) );
+  glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+  fprintf(stdout, "%s\n", &ProgramErrorMessage[0]);
 
-	glDeleteShader(VertexShaderID);
-	glDeleteShader(FragmentShaderID);
+  glDeleteShader(VertexShaderID);
+  glDeleteShader(FragmentShaderID);
 
-	return ProgramID;
+  return ProgramID;
 }
 
 static void error_callback(int error, const char* description)
@@ -407,6 +407,8 @@ BIRD move_next_bird(BIRD bird)
 
 float triangle_rot_dir = 1;
 float rectangle_rot_dir = 1;
+float zoom = 1.0f;
+float pan = 0.0f;
 bool triangle_rot_status = true;
 bool rectangle_rot_status = true;
 float triangle_x = 0,triangle_y = 0,triangle_z = 0;
@@ -470,6 +472,24 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
                 }
                 break;
             
+            case GLFW_KEY_UP: if(zoom>0.8)
+                                pan = 0;
+                                zoom -= 0.01f;
+                                break;
+
+            case GLFW_KEY_DOWN: if(zoom < 1)
+                                zoom += 0.01f;
+                                pan = 0;
+                                break;
+
+            case GLFW_KEY_LEFT: if(-(zoom*8)+pan > -8)
+                                  pan-=0.1;
+                                  break;
+
+            case GLFW_KEY_RIGHT: if((zoom*8)+pan < 8)
+                                  pan+=0.1;
+                                  break;
+
             default:
                 break;
         }
@@ -498,14 +518,14 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods)
 /* Executed for character input (like in text boxes) */
 void keyboardChar (GLFWwindow* window, unsigned int key)
 {
-	switch (key) {
-		case 'Q':
-		case 'q':
+  switch (key) {
+    case 'Q':
+    case 'q':
             quit(window);
             break;
-		default:
-			break;
-	}
+    default:
+      break;
+  }
 }
 
 /* Executed when a mouse button is pressed/released */
@@ -536,21 +556,21 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
      is different from WindowSize */
     glfwGetFramebufferSize(window, &fbwidth, &fbheight);
 
-	GLfloat fov = 90.0f;
+  GLfloat fov = 90.0f;
 
-	// sets the viewport of openGL renderer
-	glViewport (0, 0, (GLsizei) fbwidth, (GLsizei) fbheight);
+  // sets the viewport of openGL renderer
+  glViewport (0, 0, (GLsizei) fbwidth, (GLsizei) fbheight);
 
-	// set the projection matrix as perspective
-	/* glMatrixMode (GL_PROJECTION);
-	   glLoadIdentity ();
-	   gluPerspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1, 500.0); */
-	// Store the projection matrix in a variable for future use
+  // set the projection matrix as perspective
+  /* glMatrixMode (GL_PROJECTION);
+     glLoadIdentity ();
+     gluPerspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1, 500.0); */
+  // Store the projection matrix in a variable for future use
     // Perspective projection for 3D views
     // Matrices.projection = glm::perspective (fov, (GLfloat) fbwidth / (GLfloat) fbheight, 0.1f, 500.0f);
 
     // Ortho projection for 2D views
-    Matrices.projection = glm::ortho(-8.0f, 8.0f, -3.5f, 3.5f, 0.1f, 500.0f);
+    Matrices.projection = glm::ortho(zoom*(-8.0f)+pan, zoom*(8.0f)+pan, zoom*(-3.5f), zoom*(3.5f), 0.1f, 500.0f);
 }
 
 VAO *triangle, *rectangle, *circle ,*ground ,*platform ,*catapult1,*catapult2,*catapult3;
@@ -754,7 +774,7 @@ void draw ()
   // Send our transformation to the currently bound shader, in the "MVP" uniform
   // For each model you render, since the MVP will be different (at least the M part)
   //  Don't change unless you are sure!!
-  glm::mat4 MVP;	// MVP = Projection * View * Model
+  glm::mat4 MVP;  // MVP = Projection * View * Model
 
   
 
@@ -917,7 +937,7 @@ GLFWwindow* initGLFW (int width, int height)
 void initGL (GLFWwindow* window, int width, int height)
 {
     /* Objects should be created before any other gl function and shaders */
-	
+  
   //Create the models
   int i;
   float xpos=-5.6,ypos=-2.5;
@@ -930,24 +950,24 @@ void initGL (GLFWwindow* window, int width, int height)
   }
   createPowerbar();
   createCatapult();
-	createGround();
+  createGround();
   createTriangle (); // Generate the VAO, VBOs, vertices data & copy into the array buffer
-	createRectangle ();
-	
-	// Create and compile our GLSL program from the shaders
-	programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );
-	// Get a handle for our "MVP" uniform
-	Matrices.MatrixID = glGetUniformLocation(programID, "MVP");
+  createRectangle ();
+  
+  // Create and compile our GLSL program from the shaders
+  programID = LoadShaders( "Sample_GL.vert", "Sample_GL.frag" );
+  // Get a handle for our "MVP" uniform
+  Matrices.MatrixID = glGetUniformLocation(programID, "MVP");
 
-	
-	reshapeWindow (window, width, height);
+  
+  reshapeWindow (window, width, height);
 
     // Background color of the scene
-	glClearColor (0.74902,0.847059, 1.947059,0); // R, G, B, A
-	glClearDepth (1.0f);
+  glClearColor (0.74902,0.847059, 1.947059,0); // R, G, B, A
+  glClearDepth (1.0f);
 
-	glEnable (GL_DEPTH_TEST);
-	glDepthFunc (GL_LEQUAL);
+  glEnable (GL_DEPTH_TEST);
+  glDepthFunc (GL_LEQUAL);
 
     cout << "VENDOR: " << glGetString(GL_VENDOR) << endl;
     cout << "RENDERER: " << glGetString(GL_RENDERER) << endl;
@@ -957,12 +977,12 @@ void initGL (GLFWwindow* window, int width, int height)
 
 int main (int argc, char** argv)
 {
-	int width = 1600;
-	int height = 700;
+  int width = 1600;
+  int height = 700;
 
   GLFWwindow* window = initGLFW(width, height);
 
-	initGL (window, width, height);
+  initGL (window, width, height);
 
     double last_update_time = glfwGetTime(), current_time;
 
@@ -971,6 +991,9 @@ int main (int argc, char** argv)
        
         // OpenGL Draw commands
         draw();
+
+        reshapeWindow (window, width, height);
+
 
         // Swap Frame Buffer in double buffering
         glfwSwapBuffers(window);
